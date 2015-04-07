@@ -1,6 +1,6 @@
-!! Project to collect surrogate dataset creation code
+# Project to collect surrogate dataset creation code
 
-!!! Notes from last meeting:
+### Notes from last meeting:
 
 - start with very simple base dataset (white noise, equal seasonal cycle, ...)
 - add new "complications" to the simplest case one at a time
@@ -12,8 +12,6 @@
 - add several periodicities
 
 
-!!! Open questions
+### Open questions
 
 -  which language to choose, should be compilable to shared lib
-
-
