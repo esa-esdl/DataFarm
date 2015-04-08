@@ -1,0 +1,4 @@
+#This line compiles the C code to an excutable on Fabian's MacBook
+#This would have to be changed on other machines or a proper makefile created
+
+gcc -o test -Wl,-rpath,'/Users/fgans/julia/julia-4d1b751dda/lib' -Wl,-rpath,'/Users/fgans/julia/julia-4d1b751dda/lib/julia' -I$JULIA_DIR//include/julia -L$JULIA_DIR/lib/julia -ljulia calljulia.c
