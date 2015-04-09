@@ -2,14 +2,14 @@
 
 A BAST index should be invariant with respect to common properties of satellite data, not to raise false alarm. These common properties are namely
 
-\begin{itemize}
-\item different noise classes (e.g. white, red, pink noise) 
-\item periodic patterns (annual cycle)
-\item different overlapping periodicities
-\item trend
-\item missing values and/or structures induced by gap filling 
-\item chaotic behavior
-\end{itemize}
+
+- different noise classes (e.g. white, red, pink noise) 
+- periodic patterns (annual cycle)
+- different overlapping periodicities
+- trend
+- missing values and/or structures induced by gap filling 
+- chaotic behavior
+
 
 
 To ensure, that BAST indices are able to deal with the common properties of satellite data and fulfill the above mentioned requirements,
