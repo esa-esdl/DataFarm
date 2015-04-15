@@ -1,3 +1,4 @@
+module SurrogateCube
 using Distributions
 #
 #
@@ -17,7 +18,7 @@ function genCube(mt::ProcessMean,nt::Noise,dt::Disturbance,Nlon,Nlat,Ntime,k)
     x = m + n + k * std(n) * d
     return(x,d.>0)
 end
-
+export genCube
 #This function generates a whole multivariate datacube, the input is as follows:
 function genDataset{T<:ProcessMean,U<:Noise,V<:Disturbance,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Nlon,Nlat,Ntime,k)
     #Make vectors if single values were given by the user
@@ -41,7 +42,8 @@ function genDataset{T<:ProcessMean,U<:Noise,V<:Disturbance,W<:Noise}(mt::Union(V
     xout = zeros(Float64,Nvar,Nlon,Nlat,Ntime)
     for i=1:Nvar
         w = rand(Normal(),Ncomp)
-        w = w./sum(w)
+        w = w./sumabs(w)
+        println(w)
         varnoise = genNoise(dataNoise2[i],Nlon,Nlat,Ntime)
         for ilon=1:Nlon, ilat=1:Nlat, itime=1:Ntime
             for icomp=1:Ncomp
@@ -53,7 +55,8 @@ function genDataset{T<:ProcessMean,U<:Noise,V<:Disturbance,W<:Noise}(mt::Union(V
     
     xout,acomp,dcomp
 end
-    
+export genDataset
+end  
 
     
     
