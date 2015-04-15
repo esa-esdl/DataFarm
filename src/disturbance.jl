@@ -18,6 +18,8 @@ function genDisturbance(d::CubeDisturbance,Nlon,Nlat,Ntime)
     a[px:(px+sx-1),py:(py+sy-1),pz:(pz+sz-1)]=1
     a
 end
+# Some convenience Constructors to create centered disturbances of a certain size
+CubeDisturbance(s::Number) =  CubeDisturbance((s,s,s),(0.5,0.5,0.5))
 
 #simple local distrubance that covers a single longitude-latitude point (0..1,0..1) over the time span s (0..1) starting at time t (0..1)
 type LocalDisturbance <: Disturbance
@@ -40,4 +42,4 @@ end
 #Type for an empty Distrubance
 type EmptyDisturbance <: Disturbance
 end
-genDisturbance(d::EmptyDisturbance)=zeros(Int,Nlon,Nlat,Ntime)
+genDisturbance(d::EmptyDisturbance,Nlon,Nlat,Ntime)=zeros(Int,Nlon,Nlat,Ntime)
