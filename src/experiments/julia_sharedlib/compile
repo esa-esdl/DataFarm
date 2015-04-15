@@ -1,0 +1,7 @@
+#This line compiles the C code to an excutable on Fabian's MacBook
+#This would have to be changed on other machines or a proper makefile created
+export JULIA_DIR=/Users/fgans/julia/julia-4d1b751dda
+#COmpile function to shared library
+gcc -o libmylib.dylib -fPIC -Wall -shared -Wl,-rpath,'/Users/fgans/julia/julia-4d1b751dda/lib' -Wl,-rpath,'/Users/fgans/julia/julia-4d1b751dda/lib/julia' -I$JULIA_DIR//include/julia -L$JULIA_DIR/lib/julia -ljulia mylib.c
+# Compile a separate C function that uses the shared lib
+gcc -o test.x -L./ -lmylib calljulia.c
