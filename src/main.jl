@@ -40,7 +40,7 @@ function genDataset{T<:ProcessMean,U<:Noise,V<:Disturbance,W<:Noise}(mt::Union(V
     # Generate weights to generate variables out of the independent components
     xout = zeros(Float64,Nvar,Nlon,Nlat,Ntime)
     for i=1:Nvar
-        w = rand(Exponential(),Ncomp)
+        w = rand(Normal(),Ncomp)
         w = w./sum(w)
         varnoise = genNoise(dataNoise2[i],Nlon,Nlat,Ntime)
         for ilon=1:Nlon, ilat=1:Nlat, itime=1:Ntime
@@ -51,7 +51,7 @@ function genDataset{T<:ProcessMean,U<:Noise,V<:Disturbance,W<:Noise}(mt::Union(V
         end
     end
     
-    xout,dcomp
+    xout,acomp,dcomp
 end
     
 
