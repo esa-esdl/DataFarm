@@ -1,4 +1,4 @@
- In the following we briefly list thee key requirements that the BAST indices should fulfill: 
+In the following we briefly list thee key requirements that the BAST indices should fulfill: 
  
 1. Computable from different sets of variables, where each set may contain both discrete and realvalued variables as well as variables that only cover a certain range of values.
 
@@ -19,13 +19,13 @@ Xt,i = Bt,i + Nt,i + St,i
 
 where
 
--Xt,i is the data stream, consisting of the observed process at spatial locations i and time points t. 
+- Xt,i is the data stream, consisting of the observed process at spatial locations i and time points t. 
 
--Bt,i is the process baseline, which is the mean state vector, defined by the main change of the vector over time. Note that the process baseline can be either static or periodic (mimicking the annual cycle), or follow any other function or model (e.g. linear trend, roessler system, arma process). To introduce changes in the baseline’s amplitude or trend, Bt,i  = bt,i (1 + kb evt,i), with bt,i  being the original process baseline, kb defining the amplitude of the event, and evt,i defining the occurrence of the event in space and time (evt,i = 0 means no event, Bt,i defined by the original process baseline, evt,i = 1 if there is a spatio-temporal event)
+- Bt,i is the process baseline, which is the mean state vector, defined by the main change of the vector over time. Note that the process baseline can be either static or periodic (mimicking the annual cycle), or follow any other function or model (e.g. linear trend, roessler system, arma process). To introduce changes in the baseline’s amplitude or trend, Bt,i  = bt,i (1 + kb evt,i), with bt,i  being the original process baseline, kb defining the amplitude of the event, and evt,i defining the occurrence of the event in space and time (evt,i = 0 means no event, Bt,i defined by the original process baseline, evt,i = 1 if there is a spatio-temporal event)
 
--Nt,i is the “common” variation around the data mean state Bt,i, following some distribution or noise pattern (e.g. normal distribution or some correlated noise). Variance shifts can be induced by defining Nt,i = nt,i (1 + kn evt,i), with evt,i= 1 if there is a variance shift present, and evt,i=0 otherwise. The magnitude of the variance shift is defined by kn. nt,i is characterized by its standard deviation σ. 
+- Nt,i is the “common” variation around the data mean state Bt,i, following some distribution or noise pattern (e.g. normal distribution or some correlated noise). Variance shifts can be induced by defining Nt,i = nt,i (1 + kn evt,i), with evt,i= 1 if there is a variance shift present, and evt,i=0 otherwise. The magnitude of the variance shift is defined by kn. nt,i is characterized by its standard deviation σ. 
 
--St,i defines a shift in the baseline and is defined as St,i = ks evt,i σ with evt,i =1 if there is a shift present, and evt,i =0 otherwise; ks being some factor defining the magnitude of the shift relative to σ.
+- St,i defines a shift in the baseline and is defined as St,i = ks evt,i σ with evt,i =1 if there is a shift present, and evt,i =0 otherwise; ks being some factor defining the magnitude of the shift relative to σ.
 
 At least three different data streams Xt,i will be created for each virtual location in a spatial grid i of 100 x 100 pixels, with 300 temporal observations t to deal with requirement 2. Another four (or more) data streams are created by linear or multiplicative combinations of these three core data streams. Together, the data streams and their combinations are forming a multivariate vector Xd,i,t as one test data cube. 
 
