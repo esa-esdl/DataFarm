@@ -15,7 +15,7 @@ In the following we briefly list thee key requirements that the BAST indices sho
 
 To ensure, that BAST indices are able to deal with the common properties of satellite data and fulfill the above-mentioned requirements, a test data farm will be created. We extend an approach offered by Guh and Shiue (2008) to the multivariate and generic case. The test data farm will be used to evaluate different construction possibilities with respect to their usability for the BAST index construction. Within the test data farm, the variation of a variable over time Xt,i, is defined as
 
-Xt,i = Bt,i + Nt,i + St,i
+Xt,i = Bt,i + Nt,i + St,i = bt,i (1 + kb evt,i) + nt,i (1 + kn evt,i) + ks evt,i σ
 
 where
 
