@@ -4,8 +4,8 @@ abstract Noise
 export Noise
 # White Noise, everything is uncorrelated
 type WhiteNoise <: Noise
-    σ::Float64
+    s::Float64
 end
 export WhiteNoise
 export genNoise
-genNoise(n::WhiteNoise,Nlon,Nlat,Ntime)=reshape(rand(Normal(0.0,n.σ),Nlon*Nlat*Ntime),Nlon,Nlat,Ntime)
+genNoise(n::WhiteNoise,Nlon,Nlat,Ntime)=reshape(rand(Normal(0.0,n.s),Nlon*Nlat*Ntime),Nlon,Nlat,Ntime)
