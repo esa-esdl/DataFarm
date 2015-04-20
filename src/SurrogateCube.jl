@@ -1,5 +1,7 @@
 module SurrogateCube
 import Distributions: Normal, Laplace
+using Docile
+@docstrings
 #
 #
 #
@@ -26,20 +28,44 @@ include("mean.jl")
 include("disturbance.jl")
 include("io.jl")
 
-
-#Function that generates a single datacube, this can serve as a basis to build an independent component of a dataset
+@doc """
+Function that generates a single datacube, this can serve as a basis to build an independent component of a dataset. The input is as follows:
+- mt: Baseline, the process mean
+- nt: Noise, the noise chosen
+- dt: Event, the disturbance event
+- Nlon: Number of longitudes
+- Nlat: Number of Latitudes
+- Ntime: Number of Time steps
+- kb: Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=
+- kn: Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
+- ks: Strength of mean shift event
+""" ->
 function genDataStream(mt::Baseline,nt::Noise,dt::Event,Nlon,Nlat,Ntime,kb,kn,ks)
     b  = genBaseline(mt,Nlon,Nlat,Ntime)
     n  = genNoise(nt,Nlon,Nlat,Ntime)
     ev = genEvent(dt,Nlon,Nlat,Ntime)
-    x = b .* (1 .+ kb*ev) + n .* (1 .+ kn*ev) + std(n) * ks * ev
+    x = b .* (1 .+ kb*ev) + n .* (1. + kn*ev) + std(n) * ks * ev
     return(x,ev.>0)
 end
 #If only one k is given, apply it to k3
 genDataStream(mt::Baseline,nt::Noise,dt::Event,Nlon,Nlat,Ntime,k)=genDataStream(mt,nt,dt,Nlon,Nlat,Ntime,0.0,0.0,k)
 
 export genDataStream
-#This function generates a whole multivariate datacube, the input is as follows:
+@doc """
+This function generates a whole multivariate datacube, the input is as follows. It needs the followings input:
+- mt: Baseline or Vector{Baseline}, the process mean for the components
+- nt: Noise or Vector{Noise}, the noise chosen for the independent components
+- dt: Event or Vector{Event}, the distirbance events for each component
+- dataNoise: Noise or Vector{Noise}, the noise added to each variable of the DataCube
+- Ncomp: Number of independent components to generate
+- Nvar: Number of variables to generate
+- Nlon: Number of longitudes
+- Nlat: Number of Latitudes
+- Ntime: Number of Time steps
+- kb: Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=
+- kn: Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
+- ks: Strength of mean shift event
+""" ->
 function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Nlon,Nlat,Ntime,kb,kn,ks)
     #Make vectors if single values were given by the user
     mt2 = isa(mt,Vector) ? mt : fill(mt,Ncomp)

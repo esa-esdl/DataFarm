@@ -1,9 +1,22 @@
-# Define abstract type for the distrubance, each subtype should define the method
-# genDisturbance()
+@doc """
+Define abstract type for the distrubance, each subtype should define the method
+genEvent(d::Event,Nlon,Nlat,Ntime)
+"""->
 abstract Event
 export Event
-# simple cubic disturbance of relative size s (3-tuple 0..1) with the center corner at p (0..1)
-# The positions and sizes are relative to the cube size
+
+
+@doc """
+This function generates a 3D Array of Nlon, Nlat, Ntime. It should `= 0` for all points that are not affected by an event and `> 0` 
+for affected grid cells. In the simplest case the resulting array is binary (either 0 or 1)
+"""->
+genEvent(d::Event,Nlon,Nlat,Ntime)=error("The method genEvent is not defined for $(typeof(d))")
+
+
+@doc """
+simple cubic disturbance of relative size sx,sy,sz (0..1) with the center at px,py,pz (0..1)
+The positions and sizes are relative to the cube size
+"""->
 type CubeEvent <: Event
     sx::Float64
     sy::Float64
@@ -27,7 +40,10 @@ end
 # Some convenience Constructors to create centered disturbances of a certain size
 CubeEvent(s::Number) =  CubeEvent(s,s,s,0.5,0.5,0.5)
 
-#simple local distrubance that covers a single longitude-latitude point (0..1,0..1) over the time span s (0..1) starting at time t (0..1)
+
+@doc """
+simple local distrubance that covers a single longitude-latitude point (0..1,0..1) over the time span s (0..1) starting at time t (0..1)
+"""->
 type LocalEvent <: Event
     xlon::Float64
     xlat::Float64
@@ -46,7 +62,7 @@ function genEvent(d::LocalEvent,Nlon,Nlat,Ntime)
 end
 
 
-#Type for an empty Distrubance
+@doc "Type for an empty Disturbance"->
 type EmptyEvent <: Event
 end
 export EmptyEvent
