@@ -28,13 +28,12 @@ end
 export CubeEvent
 export genEvent
 function genEvent(d::CubeEvent,Nlon,Nlat,Ntime)
-    sx=iround(d.sx*Nlon);px=iround(d.px*Nlon+0.25)-div(sx,2)
-    sy=iround(d.sx*Nlat);py=iround(d.px*Nlat+0.25)-div(sy,2)
-    sz=iround(d.sx*Ntime);pz=iround(d.px*Ntime+0.25)-div(sz,2)
+    sx=d.sx*Nlon/2-0.5;px=d.px*(Nlon+1)
+    sy=d.sy*Nlat/2-0.5;py=d.py*(Nlat+1)
+    sz=d.sz*Ntime/2-0.5;pz=d.pz*(Ntime+1)
     # FIrst check that disturbance fits into the cube
-    if (px+sx>Nlon+1) || (py+sy>Nlat+1) | (pz+sz>Ntime+1) error("Event does not fit at the given place") end
-    a = zeros(Int,Nlon,Nlat,Ntime)
-    a[px:(px+sx-1),py:(py+sy-1),pz:(pz+sz-1)]=1
+    a = zeros(Float64,Nlon,Nlat,Ntime)
+    a[iround(px-sx):iround(px+sx),iround(py-sy):iround(py+sy),iround(pz-sz):iround(pz+sz)]=1
     a
 end
 # Some convenience Constructors to create centered disturbances of a certain size
@@ -56,7 +55,7 @@ function genEvent(d::LocalEvent,Nlon,Nlat,Ntime)
     sy = iround(d.xlat*Nlat)
     tstart = iround(d.s*Ntime+0.5)
     tend   = tstart+iround(d.t*Ntime+0.5)-1
-    a = zeros(Int,Nlon,Nlat,Ntime)
+    a = zeros(Float64,Nlon,Nlat,Ntime)
     a[sx,sy,tstart:tend]=1
     a
 end
@@ -67,3 +66,48 @@ type EmptyEvent <: Event
 end
 export EmptyEvent
 genEvent(d::EmptyEvent,Nlon,Nlat,Ntime)=zeros(Int,Nlon,Nlat,Ntime)
+
+
+
+@doc "Gaussian disturbance, no sharp edegs. This is constructed by supplying a center px,py,pz and bandwidth sx,sy,sz"->
+type GaussianEvent
+    sx::Float64
+    sy::Float64
+    sz::Float64
+    px::Float64
+    py::Float64
+    pz::Float64
+end
+export GaussianEvent
+GaussianEvent(s::Number)=GaussianEvent(s,s,s,0.5,0.5,0.5)
+function genEvent(d::GaussianEvent,Nlon,Nlat,Ntime)
+    sx=d.sx*Nlon/2-0.5;px=d.px*(Nlon+1)
+    sy=d.sy*Nlat/2-0.5;py=d.py*(Nlat+1)
+    sz=d.sz*Ntime/2-0.5;pz=d.pz*(Ntime+1)
+    a=[exp((i-px)^2/sx^2 + (j-py)^2/sy^2) + (k-pz)^2/sz^2 for i=1:Nlon,j=1:Nlat,k=1:Ntime]
+end
+
+@doc """
+This is a wrapper type that generates trend-like events in time. It wraps a given event `ev` which is usually a step 
+function and integrates it in the time domain to obtain slowly changing behaviour.
+"""->
+type TrendEvent{T<:Event} <: Event
+    ev::T
+end
+export TrendEvent
+function genEvent(d::TrendEvent,Nlon,Nlat,Ntime)
+    #First generate innner event
+    a = genEvent(d.ev,Nlon,Nlat,Ntime)
+    #Integrate over time
+    cumsum!(a,a,3)
+    #And rescale
+    scale!(a,2./maximum(a))
+    a
+end
+
+
+
+
+
+
+

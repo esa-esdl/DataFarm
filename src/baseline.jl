@@ -29,4 +29,14 @@ end
 export SineBaseline
 genBaseline(m::SineBaseline,Nlon,Nlat,Ntime)=[m.amp*sin(k*m.nOsc/Ntime*2*pi) for i=1:Nlon,j=1:Nlat,k=1:Ntime]
 
-
+@doc """
+A trend baseline where the mean is 0 and there is a trend in Lon, Lat and Time dimension. The range of the trend will be 
+`[-tlon,tlon], [-tlat,tlat], [-ttime,ttime]`
+"""->
+type TrendBaseline <: Baseline
+	tlon::Float64
+	tlat::Float64
+	ttime::Float64
+end
+export TrendBaseline
+genBaseline(m::TrendBaseline,Nlon,Nlat,Ntime)=[(i-1)/(Nlon-1)*2*m.tlon-m.tlon + (j-1)/(Nlat-1)*2*m.tlat-m.tlat + (k-1)/(Ntime-1)*2*m.ttime-m.ttime for i=1:Nlon,j=1:Nlat,k=1:Ntime]

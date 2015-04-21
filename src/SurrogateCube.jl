@@ -36,16 +36,16 @@ Function that generates a single datacube, this can serve as a basis to build an
 - Nlon: Number of longitudes
 - Nlat: Number of Latitudes
 - Ntime: Number of Time steps
-- kb: Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=
-- kn: Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
-- ks: Strength of mean shift event
+- `kb > 0` : Strength of baseline modulation by event, kb=1 means no modulation, kb=2 means double amplitude, kb=0.5 means half amplitude
+- `kn > 0` : Strength of noise modulation by event, kn=1, means no modulation, kn=2 double noise, kn=0.5 half noise 
+- `ks > 0: Strength of mean shift event, ks=1 no shift ks=0.5 shift in negative direction by one sd(noise), ks=2 shift by one sd(noise) in positive direction
 """ ->
 function genDataStream(mt::Baseline,nt::Noise,dt::Event,Nlon,Nlat,Ntime,kb,kn,ks)
     b  = genBaseline(mt,Nlon,Nlat,Ntime)
     n  = genNoise(nt,Nlon,Nlat,Ntime)
     ev = genEvent(dt,Nlon,Nlat,Ntime)
-    x = b .* (1 .+ kb*ev) + n .* (1. + kn*ev) + std(n) * ks * ev
-    return(x,ev.>0)
+    x = b .* 2.^(kb*ev) + n .* 2.^(kn*ev) + std(n) * ks * ev
+    return(x,ev)
 end
 #If only one k is given, apply it to k3
 genDataStream(mt::Baseline,nt::Noise,dt::Event,Nlon,Nlat,Ntime,k)=genDataStream(mt,nt,dt,Nlon,Nlat,Ntime,0.0,0.0,k)
@@ -62,9 +62,9 @@ This function generates a whole multivariate datacube, the input is as follows. 
 - Nlon: Number of longitudes
 - Nlat: Number of Latitudes
 - Ntime: Number of Time steps
-- kb: Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=
-- kn: Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
-- ks: Strength of mean shift event
+- kb: Strength of baseline modulation by event, kb=1 means no modulation, kb=2 means double amplitude, kb=0.5 means half amplitude
+- kn: Strength of noise modulation by event, kn=1, means no modulation, kn=2 double noise, kn=0.5 half noise 
+- ks: Strength of mean shift event, ks=1 no shift ks=0.5 shift in negative direction by one sd(noise), ks=2 shift by one sd(noise) in positive direction
 """ ->
 function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Nlon,Nlat,Ntime,kb,kn,ks)
     #Make vectors if single values were given by the user
@@ -74,8 +74,8 @@ function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T}
     # First generate the independent components of the datacube
     dataNoise2 = isa(dataNoise,Vector) ? dataNoise : fill(dataNoise,Nvar)
 
-    acomp = Array(Float64,Ncomp,Nlon,Nlat,Ntime)
-    dcomp = falses(Ncomp,Nlon,Nlat,Ntime)
+    acomp = zeros(Float64,Ncomp,Nlon,Nlat,Ntime)
+    dcomp = zeros(Float64,Ncomp,Nlon,Nlat,Ntime)
     
     for i = 1:Ncomp
         

@@ -22,7 +22,7 @@ function save_cube(d::DataCube, savedir = joinpath(Pkg.dir(),"SurrogateCube","da
 	fullname=joinpath(savedir,filename)
 	# Now create essential variables
 	Nvar,Nlon,Nlat,Ntime = size(d.variables)
-	Ncomp = size(d.components,2)
+	Ncomp = size(d.components,1)
 
 	#Create variables
 	#First define variable attributes
@@ -60,6 +60,17 @@ function objectToAtt(atts::Dict,t,prestring)
 	atts[prestring]=T
 	for i=1:length(n)
 		atts[@sprintf("%s_%s",prestring,string(n[i]))]=t.(n[i])
+	end
+end
+
+# Define a special function for Trend Events
+function objectToAtt(atts::Dict,t::TrendEvent,prestring)
+
+	T=string(typeof(t))
+	n=names(t.ev)
+	atts[prestring]=T
+	for i=1:length(n)
+		atts[@sprintf("%s_%s",prestring,string(n[i]))]=t.ev.(n[i])
 	end
 end
 
