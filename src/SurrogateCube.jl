@@ -24,8 +24,8 @@ type DataCube
 end
 
 include("noise.jl")
-include("mean.jl")
-include("disturbance.jl")
+include("baseline.jl")
+include("event.jl")
 include("io.jl")
 
 @doc """
