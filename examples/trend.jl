@@ -20,10 +20,29 @@ save_cube(ds)
 using PyPlot
 pygui(true)
 f=figure()
-#plot(int(d[1,5,5,:][:]))
+p=subplot()
 for i=1:Nvar
 plot(ds.variables[i,5,5,:][:])
 end
+p[:set_title]("Variables")
+p[:set_xlabel]("Time")
+
+f=figure()
+p=subplot()
+for i=1:Ncomp
+plot(ds.components[i,5,5,:][:])
+end
+p[:set_title]("Components")
+p[:set_xlabel]("Time")
+
+f=figure()
+p=subplot()
+for i=1:Ncomp
+plot(ds.eventmap[i,5,5,:][:])
+end
+p[:set_title]("Events")
+p[:set_xlabel]("Time")
+p[:set_ylim]([-0.1,2.1])
 
 
 

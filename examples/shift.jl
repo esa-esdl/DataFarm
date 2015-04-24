@@ -2,7 +2,7 @@ using SurrogateCube
 # Define some Parameters
 Ncomp = 3 #We want 3 independent components
 Nvar  = 10 # we want 10 measured variables
-noise = WhiteNoise(0.2) #Each component has a noise with sigma=0.5
+noise = RedNoise(0.2,1.0,1.0,1.0) #Each component has a noise with sigma=0.5
 means = [ConstantBaseline(0.0),ConstantBaseline(0.0),ConstantBaseline(0.0)] # All Baselines are flat
 dists = [CubeEvent(0.2),EmptyEvent(),EmptyEvent()] # Only one of the components is disturbed with a size of 20% in each dimension
 varNoise = WhiteNoise(0.1) # each variable generated has some independent white noise
