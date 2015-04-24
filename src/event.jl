@@ -4,7 +4,7 @@ genEvent(d::Event,Nlon,Nlat,Ntime)
 """->
 abstract Event
 export Event
-
+outevent!(ev::Event,x)=x
 
 @doc """
 This function generates a 3D Array of Nlon, Nlat, Ntime. It should `= 0` for all points that are not affected by an event and `> 0` 
@@ -101,9 +101,18 @@ function genEvent(d::TrendEvent,Nlon,Nlat,Ntime)
     #Integrate over time
     cumsum!(a,a,3)
     #And rescale
-    scale!(a,2./maximum(a))
+    scale!(a,1./maximum(a))
     a
 end
+function outevent!(ev::TrendEvent,x)
+    for itime=size(x,3):-1:2, ilat=1:size(x,2), ilon=1:size(x,1)
+        x[ilon,ilat,itime]=x[ilon,ilat,itime]-x[ilon,ilat,itime-1]
+    end
+    scale!(x,1/maximum(x))
+    x
+end
+
+
 
 
 
