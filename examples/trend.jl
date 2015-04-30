@@ -13,7 +13,7 @@ ks=-5.0  # How strongly do we want to perturb
 Nlon = 10
 Nlat = 10
 Ntime =100
-ds = genDataCube(means,noise,dists,varNoise,Ncomp,Nvar,Nlon,Nlat,Ntime,kb,kn,ks);
+ds = genDataCube(means,noise,dists,varNoise,Ncomp,Nvar,Ntime,Nlat,Nlon,kb,kn,ks);
 #Save the datacube to a file
 save_cube(ds)
 #Plot something
@@ -22,7 +22,7 @@ pygui(true)
 f=figure()
 p=subplot()
 for i=1:Nvar
-plot(ds.variables[i,5,5,:][:])
+plot(ds.variables[:,5,5,i][:])
 end
 p[:set_title]("Variables")
 p[:set_xlabel]("Time")
@@ -30,7 +30,7 @@ p[:set_xlabel]("Time")
 f=figure()
 p=subplot()
 for i=1:Ncomp
-plot(ds.components[i,5,5,:][:])
+plot(ds.components[:,5,5,i][:])
 end
 p[:set_title]("Components")
 p[:set_xlabel]("Time")
@@ -38,7 +38,7 @@ p[:set_xlabel]("Time")
 f=figure()
 p=subplot()
 for i=1:Ncomp
-plot(ds.eventmap[i,5,5,:][:])
+plot(ds.eventmap[:,5,5,i][:])
 end
 p[:set_title]("Events")
 p[:set_xlabel]("Time")

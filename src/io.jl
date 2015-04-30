@@ -21,8 +21,8 @@ function save_cube(d::DataCube, savedir = joinpath(Pkg.dir(),"SurrogateCube","da
 	end
 	fullname=joinpath(savedir,filename)
 	# Now create essential variables
-	Nvar,Nlon,Nlat,Ntime = size(d.variables)
-	Ncomp = size(d.components,1)
+	Ntime,Nlat,Nlon,Nvar = size(d.variables)
+	Ncomp = size(d.components,4)
 
 	#Create variables
 	#First define variable attributes
@@ -39,9 +39,9 @@ function save_cube(d::DataCube, savedir = joinpath(Pkg.dir(),"SurrogateCube","da
 	dlat = NcDim("latitude", Nlat)
 	dtim = NcDim("time", Ntime)
 	
-	vcube = NcVar("datacube",[dvar,dlon,dlat,dtim],atts=varatts)
-	vcomp = NcVar("components",[dcomp,dlon,dlat,dtim],atts=compatts)
-	veven = NcVar("events",[dcomp,dlon,dlat,dtim])
+	vcube = NcVar("datacube",[dtim,dlat,dlon,dvar],atts=varatts)
+	vcomp = NcVar("components",[dtim,dlat,dlon,dcomp],atts=compatts)
+	veven = NcVar("events",[dtim,dlat,dlon,dcomp])
 
 	nc = NetCDF.create(fullname,[vcube,vcomp,veven])
 

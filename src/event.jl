@@ -7,10 +7,10 @@ export Event
 outevent!(ev::Event,x)=x
 
 @doc """
-This function generates a 3D Array of Nlon, Nlat, Ntime. It should `= 0` for all points that are not affected by an event and `> 0` 
+This function generates a 3D Array of Ntime, Nlat, Nlon. It should `= 0` for all points that are not affected by an event and `> 0` 
 for affected grid cells. In the simplest case the resulting array is binary (either 0 or 1)
 """->
-genEvent(d::Event,Nlon,Nlat,Ntime)=error("The method genEvent is not defined for $(typeof(d))")
+genEvent(d::Event,Ntime,Nlat,Nlon)=error("The method genEvent is not defined for $(typeof(d))")
 
 
 @doc """
@@ -27,13 +27,13 @@ type CubeEvent <: Event
 end
 export CubeEvent
 export genEvent
-function genEvent(d::CubeEvent,Nlon,Nlat,Ntime)
+function genEvent(d::CubeEvent,Ntime,Nlat,Nlon)
     sx=d.sx*Nlon/2-0.5;px=d.px*(Nlon+1)
     sy=d.sy*Nlat/2-0.5;py=d.py*(Nlat+1)
     sz=d.sz*Ntime/2-0.5;pz=d.pz*(Ntime+1)
     # FIrst check that disturbance fits into the cube
-    a = zeros(Float64,Nlon,Nlat,Ntime)
-    a[iround(px-sx):iround(px+sx),iround(py-sy):iround(py+sy),iround(pz-sz):iround(pz+sz)]=1
+    a = zeros(Float64,Ntime,Nlat,Nlon)
+    a[iround(pz-sz):iround(pz+sz),iround(py-sy):iround(py+sy),iround(px-sx):iround(px+sx)]=1
     a
 end
 # Some convenience Constructors to create centered disturbances of a certain size
@@ -50,13 +50,13 @@ type LocalEvent <: Event
     t   ::Float64
 end
 export LocalEvent
-function genEvent(d::LocalEvent,Nlon,Nlat,Ntime)
+function genEvent(d::LocalEvent,Ntime,Nlat,Nlon)
     sx = iround(d.xlon*Nlon)
     sy = iround(d.xlat*Nlat)
     tstart = iround(d.s*Ntime+0.5)
     tend   = tstart+iround(d.t*Ntime+0.5)-1
-    a = zeros(Float64,Nlon,Nlat,Ntime)
-    a[sx,sy,tstart:tend]=1
+    a = zeros(Float64,Ntime,Nlat,Nlon)
+    a[tstart:tend,sx,sy]=1
     a
 end
 
@@ -65,7 +65,7 @@ end
 type EmptyEvent <: Event
 end
 export EmptyEvent
-genEvent(d::EmptyEvent,Nlon,Nlat,Ntime)=zeros(Int,Nlon,Nlat,Ntime)
+genEvent(d::EmptyEvent,Ntime,Nlat,Nlon)=zeros(Int,Ntime,Nlat,Nlon)
 
 
 
@@ -80,11 +80,11 @@ type GaussianEvent
 end
 export GaussianEvent
 GaussianEvent(s::Number)=GaussianEvent(s,s,s,0.5,0.5,0.5)
-function genEvent(d::GaussianEvent,Nlon,Nlat,Ntime)
+function genEvent(d::GaussianEvent,Ntime,Nlat,Nlon)
     sx=d.sx*Nlon/2-0.5;px=d.px*(Nlon+1)
     sy=d.sy*Nlat/2-0.5;py=d.py*(Nlat+1)
     sz=d.sz*Ntime/2-0.5;pz=d.pz*(Ntime+1)
-    a=[exp((i-px)^2/sx^2 + (j-py)^2/sy^2) + (k-pz)^2/sz^2 for i=1:Nlon,j=1:Nlat,k=1:Ntime]
+    a=[exp((i-px)^2/sx^2 + (j-py)^2/sy^2) + (k-pz)^2/sz^2 for k=1:Ntime,j=1:Nlat,i=1:Nlon]
 end
 
 @doc """
@@ -95,18 +95,18 @@ type TrendEvent{T<:Event} <: Event
     ev::T
 end
 export TrendEvent
-function genEvent(d::TrendEvent,Nlon,Nlat,Ntime)
+function genEvent(d::TrendEvent,Ntime,Nlat,Nlon)
     #First generate innner event
-    a = genEvent(d.ev,Nlon,Nlat,Ntime)
+    a = genEvent(d.ev,Ntime,Nlat,Nlon)
     #Integrate over time
-    cumsum!(a,a,3)
+    cumsum!(a,a,1)
     #And rescale
     scale!(a,1./maximum(a))
     a
 end
 function outevent!(ev::TrendEvent,x)
-    for itime=size(x,3):-1:2, ilat=1:size(x,2), ilon=1:size(x,1)
-        x[ilon,ilat,itime]=x[ilon,ilat,itime]-x[ilon,ilat,itime-1]
+    for ilon=1:size(x,3), ilat=1:size(x,2), itime=size(x,1):-1:2
+        x[itime,ilat,ilon]=x[itime,ilat,ilon]-x[itime-1,ilat,ilon]
     end
     scale!(x,1/maximum(x))
     x
