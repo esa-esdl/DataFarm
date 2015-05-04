@@ -112,6 +112,24 @@ function outevent!(ev::TrendEvent,x)
     x
 end
 
+@doc "This generates an event of spatial size sx,sy at px,py that starts at time os and lasts until the end of the time series"->
+type OnsetEvent <: Event
+    sx::Float64
+    sy::Float64
+    px::Float64
+    py::Float64
+    os::Float64
+end
+export OnsetEvent
+function genEvent(d::OnsetEvent,Ntime,Nlat,Nlon)
+    sx=d.sx*Nlon/2-0.5;px=d.px*(Nlon+1)
+    sy=d.sy*Nlat/2-0.5;py=d.py*(Nlat+1)
+    pz=d.os*(Ntime+1)
+    # FIrst check that disturbance fits into the cube
+    a = zeros(Float64,Ntime,Nlat,Nlon)
+    a[iround(pz):Ntime,iround(py-sy):iround(py+sy),iround(px-sx):iround(px+sx)]=1
+    a
+end
 
 
 
