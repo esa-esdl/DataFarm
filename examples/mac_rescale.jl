@@ -13,7 +13,7 @@ ks=0.0  # No disturbance in the mean
 Nlon = 10
 Nlat = 10
 Ntime =100
-ds = genDataCube(means,noise,dists,varNoise,Ncomp,Nvar,Nlon,Nlat,Ntime,kb,kn,ks);
+ds = genDataCube(means,noise,dists,varNoise,Ncomp,Nvar,Ntime,Nlat,Nlon,kb,kn,ks);
 #Save the datacube to a file
 save_cube(ds)
 #Plot something
@@ -22,7 +22,7 @@ pygui(true)
 f=figure()
 #plot(int(d[1,5,5,:][:]))
 for i=1:Nvar
-plot(ds.variables[i,5,5,:][:])
+plot(ds.variables[:,5,5,i][:])
 end
 
 

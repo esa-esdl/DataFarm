@@ -13,7 +13,7 @@ kn=0.0
 Nlon = 5
 Nlat = 5
 Ntime =300
-ds = genDataCube(means,noise,dists,varNoise,Ncomp,Nvar,Nlon,Nlat,Ntime,kb,ks,kn);
+ds = genDataCube(means,noise,dists,varNoise,Ncomp,Nvar,Ntime,Nlat,Nlon,kb,ks,kn);
 #Save the datacube to a file
 save_cube(ds)
 #Plot something
@@ -21,17 +21,17 @@ using PyPlot
 pygui(true)
 f=figure()
 for i=1:Nvar
-plot(ds.variables[i,3,3,:][:])
+plot(ds.variables[:,3,3,i][:])
 end
 
 f=figure()
 for i=1:Ncomp
-plot(ds.components[i,3,3,:][:])
+plot(ds.components[:,3,3,i][:])
 end
 
 f=figure()
 for i=1:Ncomp
-plot(ds.eventmap[i,3,3,:][:])
+plot(ds.eventmap[:,3,3,i][:])
 end
 
 
