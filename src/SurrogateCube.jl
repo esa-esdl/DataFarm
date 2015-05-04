@@ -44,9 +44,6 @@ function genDataStream(mt::Baseline,nt::Noise,dt::Event,Ntime,Nlat,Nlon,kb,kn,ks
     b  = genBaseline(mt,Ntime,Nlat,Nlon)
     n  = genNoise(nt,Ntime,Nlat,Nlon)
     ev = genEvent(dt,Ntime,Nlat,Nlon)
-    println(size(b))
-    println(size(n))
-    println(size(ev))
     x = b .* 2.^(kb*ev) + n .* 2.^(kn*ev) + std(n) * ks * ev
     outevent!(dt,ev)
     return(x,ev)
@@ -108,7 +105,7 @@ genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::U
 export genDataCube
 
 @doc """
-This function generates a series of whole multivariate datacubes, the input is as follows. It needs the followings input:
+This function generates a series of whole multivariate datacubes for a vector of k-values given, the input is as follows. It needs the followings input:
 - `mt`: Baseline or Vector{Baseline}, the process mean for the components
 - `nt`: Noise or Vector{Noise}, the noise chosen for the independent components
 - `dt`: Event or Vector{Event}, the distirbance events for each component
@@ -118,9 +115,9 @@ This function generates a series of whole multivariate datacubes, the input is a
 - `Nlon`: Number of longitudes
 - `Nlat`: Number of Latitudes
 - `Ntime`: Number of Time steps
-- `kb` : Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=-1 means half amplitude
-- `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
-- `ks` : Strength of mean shift event, ks=0 no shift ks=-1 shift in negative direction by one sd(noise), ks=1 shift by one sd(noise) in positive direction
+- `kb` : Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=-1 means half amplitude, can be a vector
+- `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise, can be a vector
+- `ks` : Strength of mean shift event, ks=0 no shift ks=-1 shift in negative direction by one sd(noise), ks=1 shift by one sd(noise) in positive direction, can be a vector
 - 
 """ ->
 function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Ntime,Nlat,Nlon,kb,kn,ks,experimentname,path = joinpath(Pkg.dir(),"SurrogateCube","data"));
