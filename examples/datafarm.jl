@@ -53,6 +53,9 @@ function macchange(Ntime,Nlon,Nlat,path)
 end
 
 function makeDataFarm(Ntime,Nlon,Nlat,path)
+	# First sedd the RNG
+	srand(uint(19021983))
+	#Now generate data
 	simpleshift(Ntime,Nlon,Nlat,path)
 	trendonset(Ntime,Nlon,Nlat,path)
 	varianceshift(Ntime,Nlon,Nlat,path)
