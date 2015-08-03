@@ -91,10 +91,16 @@ function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T}
     for i=1:Nvar
         w = rand(Laplace(),Ncomp)
         w = w./sumabs(w)
+        posvar = randbool()
+        posvar && x[:,:,:,i]=1.0
         varnoise = genNoise(dataNoise2[i],Ntime,Nlat,Nlon)
         for ilon=1:Nlon, ilat=1:Nlat, itime=1:Ntime
             for icomp=1:Ncomp
-                xout[itime,ilat,ilon,i]+=acomp[itime,ilat,ilon,icomp]*w[icomp]
+                if posvar
+                    xout[itime,ilat,ilon,i]*=exp(acomp[itime,ilat,ilon,icomp]*w[icomp])
+                else
+                    xout[itime,ilat,ilon,i]+=acomp[itime,ilat,ilon,icomp]*w[icomp]
+                end
             end
             xout[itime,ilat,ilon,i]+=varnoise[itime,ilat,ilon]
         end
