@@ -25,6 +25,21 @@ export WhiteNoise
 genNoise(n::WhiteNoise,Ntime,Nlat,Nlon)=reshape(rand(Normal(0.0,n.s),Nlon*Nlat*Ntime),Ntime,Nlat,Nlon)
 
 @doc """
+Cauchy-distributed random numbers as an example for a heavily long-tailed distribution, s is the final standard deviation and b the beta parameter
+"""->
+# White Noise, everything is uncorrelated
+type CauchyNoise <: Noise
+    s::Float64
+    b::Float64
+end
+export CauchyNoise
+function genNoise(n::CauchyNoise,Ntime,Nlat,Nlon)
+	x=reshape(rand(Cauchy(0.0,n.b),Nlon*Nlat*Ntime),Ntime,Nlat,Nlon)
+	scale!(x,n.s/std(x))
+end
+
+
+@doc """
 Generate 1/f^beta noise with blon, blat, btime the scaling factors in each dimension
 """->
 type RedNoise <: Noise
