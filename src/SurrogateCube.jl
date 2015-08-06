@@ -1,5 +1,5 @@
 module SurrogateCube
-import Distributions: Normal, Laplace
+import Distributions: Normal, Laplace, Cauchy, Categorical
 using Docile
 @docstrings
 #
@@ -27,6 +27,7 @@ include("noise.jl")
 include("baseline.jl")
 include("event.jl")
 include("io.jl")
+include("datafarm.jl")
 
 @doc """
 Function that generates a single datacube, this can serve as a basis to build an independent component of a dataset. The input is as follows:
@@ -50,8 +51,8 @@ function genDataStream(mt::Baseline,nt::Noise,dt::Event,Ntime,Nlat,Nlon,kb,kn,ks
 end
 #If only one k is given, apply it to k3
 genDataStream(mt::Baseline,nt::Noise,dt::Event,Ntime,Nlat,Nlon,k)=genDataStream(mt,nt,dt,Ntime,Nlat,Nlon,0.0,0.0,k)
-
 export genDataStream
+
 @doc """
 This function generates a whole multivariate datacube, the input is as follows. It needs the followings input:
 - mt: Baseline or Vector{Baseline}, the process mean for the components
@@ -92,7 +93,7 @@ function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T}
         w = rand(Laplace(),Ncomp)
         w = w./sumabs(w)
         posvar = randbool()
-        posvar && x[:,:,:,i]=1.0
+        posvar && (xout[:,:,:,i]=1.0)
         varnoise = genNoise(dataNoise2[i],Ntime,Nlat,Nlon)
         for ilon=1:Nlon, ilat=1:Nlat, itime=1:Ntime
             for icomp=1:Ncomp
@@ -102,7 +103,11 @@ function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T}
                     xout[itime,ilat,ilon,i]+=acomp[itime,ilat,ilon,icomp]*w[icomp]
                 end
             end
-            xout[itime,ilat,ilon,i]+=varnoise[itime,ilat,ilon]
+            if posvar
+                xout[itime,ilat,ilon,i]*=exp(varnoise[itime,ilat,ilon])
+            else
+                xout[itime,ilat,ilon,i]+=varnoise[itime,ilat,ilon]
+            end
         end
     end
     DataCube(xout,acomp,dcomp,mt2,nt2,dt2,dataNoise2,kb,kn,ks)

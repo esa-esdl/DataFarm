@@ -35,7 +35,7 @@ function genEvent(d::CubeEvent,Ntime,Nlat,Nlon)
     # First check that disturbance fits into the cube
     a = zeros(Float64,Ntime,Nlat,Nlon)
     for i=1:d.n
-        a[iround(pz[i]-sz[i]):iround(pz[i]+sz[i]),iround(py[i]-sy[i]):iround(py[i]+sy[i]),iround(px[i]-sx[i]):iround(px[i]+sx[i])]=1
+        a[max(1,iround(pz[i]-sz[i])):min(Ntime,iround(pz[i]+sz[i])),max(1,iround(py[i]-sy[i])):min(Nlat,iround(py[i]+sy[i])),max(1,iround(px[i]-sx[i])):min(Nlon,iround(px[i]+sx[i]))]=1
     end
     a
 end
@@ -112,8 +112,8 @@ function genEvent(d::TrendEvent,Ntime,Nlat,Nlon)
     d.persist ? cumsum!(a,a,1) : cumsumcontinous!(a)
     #If trend increase does not persist, set event to 0 after extreme
     #And rescale
-    scale!(a2,1./maximum(a2))
-    a2
+    scale!(a,1./maximum(a))
+    a
 end
 function outevent!(ev::TrendEvent,x)
     for ilon=1:size(x,3), ilat=1:size(x,2), itime=size(x,1):-1:2
