@@ -1,3 +1,4 @@
+module DataFarm
 using SurrogateCube
 
 #This defines the main experiment types with disturbances we want to detect
@@ -101,4 +102,5 @@ function makeDataFarm(Ntime,Nlon,Nlat,path)
 	myExperiment(Trend(),NoComplication(),Ntime,Nlon,Nlat,path)
 	myExperiment(VarianceShift(),NoComplication(),Ntime,Nlon,Nlat,path)
 	myExperiment(MACShift(),NoComplication(),Ntime,Nlon,Nlat,path)
+end
 end
