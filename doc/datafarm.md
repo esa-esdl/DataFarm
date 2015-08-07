@@ -1,9 +1,9 @@
-#General
+# General
 This is the general description of the DataFarm, as of version v2. The datafarm is generated to test novelty/event detection methods for their performance. Hence a variety of artificial datacubes is generated and events at certain time steps are inserted. A resulting datacube is a 4-dimensional array of dimensions time-lat-lon-variable. For details on the generation methodology, check out doc.md. Here the single experiments are described in detail. 
 
 Every experiment is a combination of a disturbance, i.e. the event that we want to detect and possibly an additional complication which might make the detection of the disturbance harder for certain algorithms (e.g. the presence of a seasonal cycle or correlated noise). Every experiment/complication combination is stored in a separate folder containing the name of both.
 
-#Standard settings
+# Standard settings
 
 Here the standard settings for the undisturbed data cube are listed. Each disturbance or complication will modify a part of these standard settings in some way. These modifications are listed in the next section.
 
@@ -91,4 +91,3 @@ Change the length of the extremes to 10 time steps but generate 1 extreme in exc
 - ´nevent(::ExperimentType,::ShortExtremes)=1´
 - ´tempsize(::MACShift,::ShortExtremes)=104/300´
 - ´tempsize(::ExperimentType,::ShortExtremes)=10/300´
-
