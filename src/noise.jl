@@ -1,22 +1,22 @@
 
-@doc """
+"""
 Noise is an abstract type representing fluctuations around a baseline of a variable, each subtype should define the following method:
 
     genNoise(,n::Noise,Nlon,Nlat,Ntime)
 
-"""->
+"""
 abstract Noise
 export Noise
 
 
-@doc "This function generates a 3D Array of Nlon, Nlat, Ntime"->
+"This function generates a 3D Array of Nlon, Nlat, Ntime"
 genNoise(n::Noise,Ntime,Nlat,Nlon)=error("Method genNoise not implemented for type $(typeof(n)).")
 export genNoise
 
 
-@doc """
+"""
 The simplest form of noise, White noise with mean 0 and standard deviation `s`
-"""->
+"""
 # White Noise, everything is uncorrelated
 type WhiteNoise <: Noise
     s::Float64
@@ -24,9 +24,9 @@ end
 export WhiteNoise
 genNoise(n::WhiteNoise,Ntime,Nlat,Nlon)=reshape(rand(Normal(0.0,n.s),Nlon*Nlat*Ntime),Ntime,Nlat,Nlon)
 
-@doc """
+"""
 Cauchy-distributed random numbers as an example for a heavily long-tailed distribution, s is the final standard deviation and b the beta parameter
-"""->
+"""
 # White Noise, everything is uncorrelated
 type CauchyNoise <: Noise
     s::Float64
@@ -39,9 +39,9 @@ function genNoise(n::CauchyNoise,Ntime,Nlat,Nlon)
 end
 
 
-@doc """
+"""
 Generate 1/f^beta noise with blon, blat, btime the scaling factors in each dimension
-"""->
+"""
 type RedNoise <: Noise
 	s::Float64
 	blon::Float64
@@ -71,4 +71,3 @@ function genNoise(n::RedNoise,Ntime,Nlat,Nlon)
 	end
 	scale!(wn1,n.s/std(wn1))
 end
-

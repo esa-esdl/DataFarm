@@ -28,6 +28,7 @@ include("baseline.jl")
 include("event.jl")
 include("io.jl")
 include("datafarm.jl")
+include("coupling.jl")
 
 @doc """
 Function that generates a single datacube, this can serve as a basis to build an independent component of a dataset. The input is as follows:
@@ -38,7 +39,7 @@ Function that generates a single datacube, this can serve as a basis to build an
 - Nlat: Number of Latitudes
 - Ntime: Number of Time steps
 - `kb` : Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=-1 means half amplitude
-- `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
+- `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise
 - `ks`: Strength of mean shift event, ks=0 no shift ks=-1 shift in negative direction by one sd(noise), ks=1 shift by one sd(noise) in positive direction
 """ ->
 function genDataStream(mt::Baseline,nt::Noise,dt::Event,Ntime,Nlat,Nlon,kb,kn,ks)
@@ -53,7 +54,7 @@ end
 genDataStream(mt::Baseline,nt::Noise,dt::Event,Ntime,Nlat,Nlon,k)=genDataStream(mt,nt,dt,Ntime,Nlat,Nlon,0.0,0.0,k)
 export genDataStream
 
-@doc """
+"""
 This function generates a whole multivariate datacube, the input is as follows. It needs the followings input:
 - mt: Baseline or Vector{Baseline}, the process mean for the components
 - nt: Noise or Vector{Noise}, the noise chosen for the independent components
@@ -65,57 +66,50 @@ This function generates a whole multivariate datacube, the input is as follows. 
 - Nlat: Number of Latitudes
 - Ntime: Number of Time steps
 - `kb` : Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=-1 means half amplitude
-- `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise 
+- `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise
 - `ks` : Strength of mean shift event, ks=0 no shift ks=-1 shift in negative direction by one sd(noise), ks=1 shift by one sd(noise) in positive direction
-""" ->
-function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Ntime,Nlat,Nlon,kb::Number,kn::Number,ks::Number)
-    #Make vectors if single values were given by the user
-    mt2 = isa(mt,Vector) ? mt : fill(mt,Ncomp)
-    nt2 = isa(nt,Vector) ? nt : fill(nt,Ncomp)
-    dt2 = isa(dt,Vector) ? dt : fill(dt,Ncomp)
-    # First generate the independent components of the datacube
-    dataNoise2 = isa(dataNoise,Vector) ? dataNoise : fill(dataNoise,Nvar)
+"""
+function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(
+	mt::Union{Vector{T},T},
+	nt::Union{Vector{U},U},
+	dt::Union{Vector{V},V},
+	dataNoise::Union{Vector{W},W},
+	coupling::Coupling,
+	Ncomp,
+	Nvar,
+	Ntime,
+	Nlat,
+	Nlon,
+	kb::Number,
+	kn::Number,
+	ks::Number)
+	#Make vectors if single values were given by the user
+	mt2 = isa(mt,Vector) ? mt : fill(mt,Ncomp)
+	nt2 = isa(nt,Vector) ? nt : fill(nt,Ncomp)
+	dt2 = isa(dt,Vector) ? dt : fill(dt,Ncomp)
+  dataNoise2 = isa(dataNoise,Vector) ? dataNoise : fill(dataNoise,Nvar)
 
-    acomp = zeros(Float64,Ntime,Nlat,Nlon,Ncomp)
-    dcomp = zeros(Float64,Ntime,Nlat,Nlon,Ncomp)
-    
-    for i = 1:Ncomp
-        
-        x,d = genDataStream(mt2[i],nt2[i],dt2[i],Ntime,Nlat,Nlon,kb,kn,ks)
-        acomp[:,:,:,i]=x
-        dcomp[:,:,:,i]=d
-        
-    end
-    
-    # Generate weights to generate variables out of the independent components
-    xout = zeros(Float64,Ntime,Nlat,Nlon,Nvar)
-    for i=1:Nvar
-        w = rand(Laplace(),Ncomp)
-        w = w./sumabs(w)
-        posvar = randbool()
-        posvar && (xout[:,:,:,i]=1.0)
-        varnoise = genNoise(dataNoise2[i],Ntime,Nlat,Nlon)
-        for ilon=1:Nlon, ilat=1:Nlat, itime=1:Ntime
-            for icomp=1:Ncomp
-                if posvar
-                    xout[itime,ilat,ilon,i]*=exp(acomp[itime,ilat,ilon,icomp]*w[icomp])
-                else
-                    xout[itime,ilat,ilon,i]+=acomp[itime,ilat,ilon,icomp]*w[icomp]
-                end
-            end
-            if posvar
-                xout[itime,ilat,ilon,i]*=exp(varnoise[itime,ilat,ilon])
-            else
-                xout[itime,ilat,ilon,i]+=varnoise[itime,ilat,ilon]
-            end
-        end
-    end
-    DataCube(xout,acomp,dcomp,mt2,nt2,dt2,dataNoise2,kb,kn,ks)
+	# First generate the independent components of the datacube
+	acomp = zeros(Float64,Ntime,Nlat,Nlon,Ncomp)
+	dcomp = zeros(Float64,Ntime,Nlat,Nlon,Ncomp)
+
+	for i = 1:Ncomp
+		x,d = genDataStream(mt2[i],nt2[i],dt2[i],Ntime,Nlat,Nlon,kb,kn,ks)
+		acomp[:,:,:,i]=x
+		dcomp[:,:,:,i]=d
+	end
+
+	# Generate weights to generate variables out of the independent components
+	xout = zeros(Float64,Ntime,Nlat,Nlon,Nvar)
+  combineComponents!(xout,acomp,coupling,dataNoise2)
+
+
+	DataCube(xout,acomp,dcomp,mt2,nt2,dt2,dataNoise2,kb,kn,ks)
 end
-genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Ntime,Nlat,Nlon,k)=genDataCube(mt,nt,dt,dataNoise,Ncomp,Nvar,Ntime,Nlat,Nlon,0.0,0.0,k)
+genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union{Vector{T},T},nt::Union{Vector{U},U},dt::Union{Vector{V},V},dataNoise::Union{Vector{W},W},Ncomp,Nvar,Ntime,Nlat,Nlon,k)=genDataCube(mt,nt,dt,dataNoise,Ncomp,Nvar,Ntime,Nlat,Nlon,0.0,0.0,k)
 export genDataCube
 
-@doc """
+"""
 This function generates a series of whole multivariate datacubes for a vector of k-values given, the input is as follows. It needs the followings input:
 - `mt`: Baseline or Vector{Baseline}, the process mean for the components
 - `nt`: Noise or Vector{Noise}, the noise chosen for the independent components
@@ -129,10 +123,10 @@ This function generates a series of whole multivariate datacubes for a vector of
 - `kb` : Strength of baseline modulation by event, kb=0 means no modulation, kb=1 means double amplitude, kb=-1 means half amplitude, can be a vector
 - `kn` : Strength of noise modulation by event, kn=0, means no modulation, kn=1 double noise, kn=-1 half noise, can be a vector
 - `ks` : Strength of mean shift event, ks=0 no shift ks=-1 shift in negative direction by one sd(noise), ks=1 shift by one sd(noise) in positive direction, can be a vector
-- 
-""" ->
-function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T},T),nt::Union(Vector{U},U),dt::Union(Vector{V},V),dataNoise::Union(Vector{W},W),Ncomp,Nvar,Ntime,Nlat,Nlon,kb,kn,ks,experimentname,path = joinpath(Pkg.dir(),"SurrogateCube","data"));
-    
+-
+"""
+function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union{Vector{T},T},nt::Union{Vector{U},U},dt::Union{Vector{V},V},dataNoise::Union{Vector{W},W},Ncomp,Nvar,Ntime,Nlat,Nlon,kb,kn,ks,experimentname,path = joinpath(Pkg.dir(),"SurrogateCube","data"));
+
     isdir(joinpath(path,experimentname)) ? error("Directory $path already exists.") : mkdir(joinpath(path,experimentname))
 
     for ikb = 1:length(kb), ikn=1:length(kn), iks=1:length(ks)
@@ -144,6 +138,3 @@ function genDataCube{T<:Baseline,U<:Noise,V<:Event,W<:Noise}(mt::Union(Vector{T}
 end
 
 end  #Module
-
-    
-    
