@@ -29,6 +29,10 @@ function event(et::ExperimentType,co::Complication)
 	n=nevent(et,co)
 	CubeEvent(n,fill(sspat,n),fill(sspat,n),fill(stime,n),p[1:n,1],p[1:n,2],p[1:n,3])
 end
+#Coupling
+coupling(et::ExperimentType,co::Complication)=fill(LinearCoupling(),nvar(et,co))
+#Weights
+weights(et::ExperimentType,co::)=[LaplaceWeight() for i=1:ncomp(et,co)]
 #Number of events
 nevent(::ExperimentType,::Complication)=10
 #Spatial extent of events
@@ -75,15 +79,18 @@ ks(::Trend,::Complication)=Float64[0.2:0.2:4]
 #Generates extremes with shifts in variances
 immutable VarianceShift <: ExperimentType end
 dists(et::VarianceShift,co::Complication)=[i==1 ? event(et,co) : EmptyEvent() for i=1:ncomp(et,co)]
-kn(::VarianceShift,::Complication)=Float64[-2:0.2:-0.2,0.2:0.2:2]
+kn(::VarianceShift,::Complication)=Float64[-2:0.2:-0.2;0.2:0.2:2]
 
 #Generates extremes where AMplitude of the MAC is increased or decreased
 immutable MACShift <: ExperimentType end
 bases(et::MACShift,co::Complication)=[i==1 ? SineBaseline(300/46,5.0) : ConstantBaseline(0.0) for i=1:ncomp(et,co)]
 dists(et::MACShift,co::Complication)=[i==1 ? event(et,co) : EmptyEvent() for i=1:ncomp(et,co)]
 tempsize(et::MACShift,co::Complication)=92/300
-kb(::MACShift,::Complication)=Float64[-2:0.2:-0.2,0.2:0.2:2]
+kb(::MACShift,::Complication)=Float64[-2:0.2:-0.2;0.2:0.2:2]
 
+#Generates events in which the coupling between variables in shifted
+immutable DepShift <: ExperimentType end
+kw(::DepShift,::Complication)=Float64[0.2:0.2:1]
 
 # These are the function overrides for the variouse complications we can add
 #Increase the variable noise
@@ -143,9 +150,11 @@ function myExperiment(et::ExperimentType,co::Complication,p,Ntime,Nlat,Nlon,path
 	means = bases(et,co) # All Baselines are flat
 	distus = dists(et,co) # Only one of the components is disturbed with a size of 20% in each dimension
 	varNoise = varnoise(et,co) # each variable generated has some independent white noise
-	kbs,kns,kss=(kb(et,co),kn(et,co),ks(et,co))  # How strongly do we want to perturb
+	kbs,kns,kss,kws=(kb(et,co),kn(et,co),ks(et,co),kw(et,co))  # How strongly do we want to perturb
+  coup   = coupling(et,co) # Get the couplings
+  we     = weights(et,co)  #get Weights
 	#Set dimensions
-	ds = genDataCube(means,noise,distus,varNoise,Ncomp,Nvar,Ntime,Nlat,Nlon,kbs,kns,kss,expName(et,co),path);
+	ds = genDataCube(means,noise,distus,varNoise,coup,we,Ncomp,Nvar,Ntime,Nlat,Nlon,kbs,kns,kss,kws,expName(et,co),path);
 end
 
 

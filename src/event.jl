@@ -35,7 +35,7 @@ function genEvent(d::CubeEvent,Ntime,Nlat,Nlon)
     # First check that disturbance fits into the cube
     a = zeros(Float64,Ntime,Nlat,Nlon)
     for i=1:d.n
-        a[max(1,iround(pz[i]-sz[i])):min(Ntime,iround(pz[i]+sz[i])),max(1,iround(py[i]-sy[i])):min(Nlat,iround(py[i]+sy[i])),max(1,iround(px[i]-sx[i])):min(Nlon,iround(px[i]+sx[i]))]+=1
+        a[max(1,round(Int,pz[i]-sz[i])):min(Ntime,round(Int,pz[i]+sz[i])),max(1,round(Int,py[i]-sy[i])):min(Nlat,round(Int,py[i]+sy[i])),max(1,round(Int,px[i]-sx[i])):min(Nlon,round(Int,px[i]+sx[i]))]+=1
     end
     a
 end
@@ -65,10 +65,10 @@ type LocalEvent <: Event
 end
 export LocalEvent
 function genEvent(d::LocalEvent,Ntime,Nlat,Nlon)
-    sx = iround(d.xlon*Nlon)
-    sy = iround(d.xlat*Nlat)
-    tstart = iround(d.s*Ntime+0.5)
-    tend   = tstart+iround(d.t*Ntime+0.5)-1
+    sx = round(Int,d.xlon*Nlon)
+    sy = round(Int,d.xlat*Nlat)
+    tstart = round(Int,d.s*Ntime+0.5)
+    tend   = tstart+round(Int,d.t*Ntime+0.5)-1
     a = zeros(Float64,Ntime,Nlat,Nlon)
     a[tstart:tend,sx,sy]=1
     a
@@ -153,7 +153,7 @@ function genEvent(d::OnsetEvent,Ntime,Nlat,Nlon)
     pz=d.os*(Ntime+1)
     # FIrst check that disturbance fits into the cube
     a = zeros(Float64,Ntime,Nlat,Nlon)
-    a[iround(pz):Ntime,iround(py-sy):iround(py+sy),iround(px-sx):iround(px+sx)]=1
+    a[round(Int,pz):Ntime,round(Int,py-sy):round(Int,py+sy),round(Int,px-sx):round(Int,px+sx)]=1
     a
 end
 
