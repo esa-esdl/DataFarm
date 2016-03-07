@@ -32,7 +32,7 @@ end
 #Coupling
 coupling(et::ExperimentType,co::Complication)=fill(LinearCoupling(),nvar(et,co))
 #Weights
-weights(et::ExperimentType,co::)=[LaplaceWeight() for i=1:ncomp(et,co)]
+weights(et::ExperimentType,co::Complication)=[LaplaceWeight(ncomp(et,co)) for i=1:nvar(et,co)]
 #Number of events
 nevent(::ExperimentType,::Complication)=10
 #Spatial extent of events
@@ -91,6 +91,7 @@ kb(::MACShift,::Complication)=Float64[-2:0.2:-0.2;0.2:0.2:2]
 #Generates events in which the coupling between variables in shifted
 immutable DepShift <: ExperimentType end
 kw(::DepShift,::Complication)=Float64[0.2:0.2:1]
+weights(et::DepShift,co::Complication)=[DisturbedLaplaceWeight(ncomp(et,co)) for i=1:nvar(et,co)]
 
 # These are the function overrides for the variouse complications we can add
 #Increase the variable noise
