@@ -29,13 +29,15 @@ end
 function depShift()
   @load_defaults
   kw=1.0
-  weight=[DisturbedLaplaceWeight([0.9,sqrt(1-0.9^2)],[-sqrt(1-0.9^2),0.9]),LaplaceWeight([0.8,sqrt(1-0.8^2)])]
+  #Make sure event happens in all conmponents
+  dt=[CubeEvent(1,[0.6],[0.6],[0.2],[0.5],[0.5],[0.5]),CubeEvent(1,[0.6],[0.6],[0.2],[0.5],[0.5],[0.5])]
+  weight=[DisturbedLaplaceWeight(2),LaplaceWeight(2)]
   @makeCube
 end
 
 function baseShift()
   @load_defaults
-  kb=5.0
+  ks=5.0
   @makeCube
 end
 
@@ -67,9 +69,11 @@ end
 
 function quadraticdepshift()
   @load_defaults
-  coupling[1]=QuadraticCoupling(1.0)
+  coupling[2]=QuadraticCoupling(1.0)
   kw=1.0
+  dt=[CubeEvent(1,[0.6],[0.6],[0.2],[0.5],[0.5],[0.5]),CubeEvent(1,[0.6],[0.6],[0.2],[0.5],[0.5],[0.5])]
   weight=[DisturbedLaplaceWeight([0.95,sqrt(1-0.95^2)],[-sqrt(1-0.95^2),0.95]),LaplaceWeight([0.9,sqrt(1-0.9^2)])]
+  weight=[DisturbedLaplaceWeight(2),LaplaceWeight(2)]
   @makeCube
 end
 

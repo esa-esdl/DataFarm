@@ -43,7 +43,7 @@ function save_cube(d::DataCube, savedir = joinpath(Pkg.dir(),"SurrogateCube","da
 	vcomp = NcVar("components",[dtim,dlat,dlon,dcomp],atts=compatts)
 	veven = NcVar("events",[dtim,dlat,dlon,dcomp])
 
-	nc = NetCDF.create(fullname,[vcube,vcomp,veven])
+	nc = NetCDF.create(fullname,NcVar[vcube,vcomp,veven])
 
 	NetCDF.putvar(nc,"datacube",d.variables)
 	NetCDF.putvar(nc,"components",d.components)
@@ -56,7 +56,7 @@ export save_cube
 function objectToAtt(atts::Dict,t,prestring)
 
 	T=string(typeof(t))
-	n=names(t)
+	n=fieldnames(t)
 	atts[prestring]=T
 	for i=1:length(n)
 		atts[@sprintf("%s_%s",prestring,string(n[i]))]=t.(n[i])
@@ -67,7 +67,7 @@ end
 function objectToAtt(atts::Dict,t::TrendEvent,prestring)
 
 	T=string(typeof(t))
-	n=names(t.ev)
+	n=fieldnames(t.ev)
 	atts[prestring]=T
 	for i=1:length(n)
 		atts[@sprintf("%s_%s",prestring,string(n[i]))]=t.ev.(n[i])
