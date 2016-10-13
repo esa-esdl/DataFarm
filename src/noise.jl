@@ -38,6 +38,20 @@ function genNoise(n::CauchyNoise,Ntime,Nlat,Nlon)
 	scale!(x,n.s/std(x))
 end
 
+"""
+Laplace-distributed random numbers as an example for a heavily long-tailed distribution, s is the final standard deviation and b the beta parameter
+"""
+# White Noise, everything is uncorrelated
+type LaplaceNoise <: Noise
+    s::Float64
+    b::Float64
+end
+export LaplaceNoise
+function genNoise(n::LaplaceNoise,Ntime,Nlat,Nlon)
+	x=reshape(rand(Laplace(0.0,n.b),Nlon*Nlat*Ntime),Ntime,Nlat,Nlon)
+	scale!(x,n.s/std(x))
+end
+
 
 """
 Generate 1/f^beta noise with blon, blat, btime the scaling factors in each dimension

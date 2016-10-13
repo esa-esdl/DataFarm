@@ -1,7 +1,6 @@
 module TinyFarm
 #This generates small 2d examples for datacubes, can be used for example plotting
 using SurrogateCube
-using PyPlot
 macro load_defaults()
   esc(quote
     Ncomp=2

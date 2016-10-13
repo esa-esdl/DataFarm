@@ -47,8 +47,10 @@ kb(::ExperimentType,::Complication)=0.0
 kn(::ExperimentType,::Complication)=0.0
 #Strength of shift parameter
 ks(::ExperimentType,::Complication)=0.0
+#Strength of dependence disturbance
+kw(::ExperimentType,::Complication)=0.0
 #Noae of the experiment
-expName(et::ExperimentType,co::Complication)=string(string(et)[1:end-2],"_",string(co)[1:end-2])
+expName(et::ExperimentType,co::Complication)=string(split(string(et)[1:end-2],".")[end],"_",split(string(co)[1:end-2],".")[end])
 #Should this combination be skipped?
 skipthis(::ExperimentType,::Complication)=false
 #coupling
@@ -62,19 +64,19 @@ end
 #Here come the special functions that overload the abstract ones defined above
 immutable BaseShift <: ExperimentType end
 dists(et::BaseShift,co::Complication)=[i==1 ? event(et,co) : EmptyEvent() for i=1:ncomp(et,co)]
-ks(::BaseShift,::Complication)=Float64[0.2:0.2:4]
+ks(::BaseShift,::Complication)=Float64[0.2:0.2:4;]
 
 #This generates Extremes that start slowly and end abruptly
 immutable TrendJump <: ExperimentType end
 event(et::TrendJump,co::Complication)=TrendEvent(event(BaseShift(),co),false)
 dists(et::TrendJump,co::Complication)=[i==1 ? event(et,co) : EmptyEvent() for i=1:ncomp(et,co)]
-ks(::TrendJump,::Complication)=Float64[0.2:0.2:4]
+ks(::TrendJump,::Complication)=Float64[0.2:0.2:4;]
 
 #Generates extremes with a Trend onset in the middle of the time series
 immutable Trend <: ExperimentType end
 event(et::Trend,co::Complication)=TrendEvent(OnsetEvent(spatsize(et,co),spatsize(et,co),0.5,0.5,0.5),true)
 dists(et::Trend,co::Complication)=[i==1 ? event(et,co) : EmptyEvent() for i=1:ncomp(et,co)]
-ks(::Trend,::Complication)=Float64[0.2:0.2:4]
+ks(::Trend,::Complication)=Float64[0.2:0.2:4;]
 
 #Generates extremes with shifts in variances
 immutable VarianceShift <: ExperimentType end
@@ -85,13 +87,14 @@ kn(::VarianceShift,::Complication)=Float64[-2:0.2:-0.2;0.2:0.2:2]
 immutable MACShift <: ExperimentType end
 bases(et::MACShift,co::Complication)=[i==1 ? SineBaseline(300/46,5.0) : ConstantBaseline(0.0) for i=1:ncomp(et,co)]
 dists(et::MACShift,co::Complication)=[i==1 ? event(et,co) : EmptyEvent() for i=1:ncomp(et,co)]
-tempsize(et::MACShift,co::Complication)=92/300
+tempsize(et::MACShift,co::Complication)=46/300
+nevent(et::MACShift,co::Complication)=2
 kb(::MACShift,::Complication)=Float64[-2:0.2:-0.2;0.2:0.2:2]
 
 #Generates events in which the coupling between variables in shifted
 immutable DepShift <: ExperimentType end
-kw(::DepShift,::Complication)=Float64[0.2:0.2:1]
-dists(et::BaseShift,co::Complication)=[event(et,co) for i=1:ncomp(et,co)]
+kw(::DepShift,::Complication)=Float64[0.2:0.2:1;]
+dists(et::DepShift,co::Complication)=[event(et,co) for i=1:ncomp(et,co)]
 weights(et::DepShift,co::Complication)=[DisturbedLaplaceWeight(ncomp(et,co)) for i=1:nvar(et,co)]
 
 # These are the function overrides for the variouse complications we can add
@@ -107,6 +110,10 @@ bases(::ExperimentType,::SeasonalCycle)=[SineBaseline(300/46,5.0),ConstantBaseli
 #Make component noise Cauchy-distributed, very long-tailed
 immutable NonGaussianNoise <: Complication end
 compnoise(et::ExperimentType,co::NonGaussianNoise)=CauchyNoise(compnoiselevel(et,co),1.0)
+
+#Make component noise Cauchy-distributed, very long-tailed
+immutable LaplacianNoise <: Complication end
+compnoise(et::ExperimentType,co::NonGaussianNoise)=LaplaceNoise(compnoiselevel(et,co),1.0)
 
 #Make noise correlated
 immutable CorrelatedNoise <: Complication end
@@ -125,19 +132,21 @@ immutable NoComplication <: Complication end
 
 immutable ShortExtremes <: Complication end
 skipthis(::Trend,::ShortExtremes)=true
-nevent(::ExperimentType,::ShortExtremes)=50
 nevent(::MACShift,::ShortExtremes)=4
+nevent(::ExperimentType,::ShortExtremes)=50
 tempsize(::MACShift,::ShortExtremes)=46/300
 tempsize(::ExperimentType,::ShortExtremes)=1/300
 
 immutable LongExtremes <: Complication end
 skipthis(::Trend,::LongExtremes)=true
+nevent(::MACShift,::LongExtremes)=1
 nevent(::ExperimentType,::LongExtremes)=5
 tempsize(::MACShift,::LongExtremes)=184/300
 tempsize(::ExperimentType,::LongExtremes)=10/300
 
 immutable NonLinearDep <: Complication end
-coup(::ExperimentType,::NonLinearDep)=QuadraticCoupling()
+coup(::ExperimentType,::NonLinearDep)=QuadraticCoupling(0.5)
+
 
 immutable LatitudeGradient <: Complication end
 bases(et::MACShift,co::LatitudeGradient)=[i==1 ? SineBaseline(300/46,5.0) : i==2 ? TrendBaseline(0.0,0.0,1.0) : ConstantBaseline(0.0) for i=1:ncomp(et,co)]
@@ -162,12 +171,12 @@ end
 
 function makeDataFarm(Ntime,Nlon,Nlat,path)
 	# First sedd the RNG
-	srand(uint(19021983))
+	srand(19021983)
 	#Get positions of extremes
 	p=getValidPlaces(Ntime,Nlon,Nlat)
 	#Now generate data
-	for expi in [BaseShift, TrendJump, Trend, VarianceShift, MACShift]
-		for compli in [NoiseIncrease, SeasonalCycle, NonGaussianNoise, CorrelatedNoise, RandomWalkExtreme, MoreIndepComponents, ShortExtremes, LongExtremes, NonLinearDep, LatitudeGradient]
+	for expi in [DepShift, BaseShift, TrendJump, Trend, VarianceShift, MACShift]
+		for compli in [LaplacianNoise]
 			println(expName(expi(),compli()))
 			skipthis(expi(),compli()) || myExperiment(expi(),compli(),p,Ntime,Nlon,Nlat,path)
 		end
@@ -186,14 +195,14 @@ end
 const p=zeros(50,3)
 
 function getValidPlaces(Ntime,Nlon,Nlat)
-	expi=BaseShift()
+	expis=[BaseShift(),MACShift()]
   complis=[NoComplication(),ShortExtremes(),LongExtremes()]
   found=false
   ii=2
   while !found
     randomEventPlaces!(nevent(BaseShift(),ShortExtremes()));
     found=true
-    for ii=1:length(complis)
+    for ii=1:length(complis),expi=expis
       n=DataFarm.nevent(expi,complis[ii])
       sx=fill(spatsize(expi,complis[ii]),n)
       sy=fill(spatsize(expi,complis[ii]),n)

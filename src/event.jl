@@ -173,15 +173,15 @@ function RandomWalkEvent(n::Integer,sx::Number,sy::Number,sz::Number)
     RandomWalkEvent(n,sx,sy,sz,px,py,pz)
 end
 function genEvent(d::RandomWalkEvent,Ntime,Nlat,Nlon)
-    sx=d.sx*Nlon;px=iround(d.px*(Nlon+1))
-    sy=d.sy*Nlat;py=iround(d.py*(Nlat+1))
-    sz=d.sz*Ntime;pz=iround(d.pz*(Ntime+1))
+    sx=d.sx*Nlon;px=round(Int,d.px*(Nlon+1))
+    sy=d.sy*Nlat;py=round(Int,d.py*(Nlat+1))
+    sz=d.sz*Ntime;pz=round(Int,d.pz*(Ntime+1))
     a = zeros(Float64,Ntime,Nlat,Nlon)
     for ievent=1:d.n
         walkweights=[sx[ievent]^2,sx[ievent]^2,sy[ievent]^2,sy[ievent]^2,sz[ievent]^2,sz[ievent]^2]
         scale!(walkweights,1/sum(walkweights))
         distri=Categorical(walkweights)
-        Ntot=iround(sx[ievent]*sy[ievent]*sz[ievent])
+        Ntot=round(Int,sx[ievent]*sy[ievent]*sz[ievent])
         x=px[ievent];y=py[ievent];z=pz[ievent]
         a[z,y,x]=1 #Set starting point to 1
         itot=1
